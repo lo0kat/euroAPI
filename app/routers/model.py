@@ -1,20 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+class Model(BaseModel):
+    name : str
 
-class Draw(BaseModel):
-    Date:str
-    N1:int
-    N2:int
-    N3:int
-    N4:int
-    N5:int
-    N6:int
-    E1:int
-    E2:int
-    Winner:int
-    Gain : int
-    
 
 router = APIRouter(
      prefix="/model",
@@ -27,8 +16,8 @@ async def read_model():
 
 
 @router.put("/")
-async def read_model(draw:Draw):
-    return {"Draw":draw}
+async def read_model(model:Model):
+    return {"Model":model}
 
 @router.post("/retrain")
 async def read_model():
