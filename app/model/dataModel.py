@@ -55,7 +55,7 @@ Takes a dataframe, splits it into sets for training / testing and returns the re
 def split_train_test(data):  
     Y = data[['estGagnant']]
     X = data[['N1', 'N2', 'N3', 'N4', 'N5', 'E1', 'E2']]
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
     return (X_train,Y_train,X_test,Y_test)
 
 

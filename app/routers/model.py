@@ -10,12 +10,12 @@ router = APIRouter(
     tags=["model"],
 )
 
-@router.get("/")
-async def read_model():
-    return {"name":"Random Forest"}
+@router.get("")
+async def read_model(model : Model):
+    return {"Model":model}
 
 
-@router.put("/")
+@router.put("")
 async def read_model(model:Model):
     return {"Model":model}
 

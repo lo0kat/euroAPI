@@ -3,9 +3,6 @@ from pydantic import BaseModel
 from ..model import dataModel
 
 completedData = dataModel.CSVtoDataFrame("app/data/Completed_EuroMillions.csv",",")
-train_test = dataModel.split_train_test(completedData)
-forest = dataModel.random_Forest(*train_test)
-winner = dataModel.get_winner(dataModel.build_res_df(*forest,train_test[2],train_test[3]),'RandomForestClassifier')
 
 
 class Draw(BaseModel):
@@ -27,11 +24,15 @@ router = APIRouter(
     tags=["predict"],
 )
 
-@router.get("/")
+@router.get("")
 async def read_predict():
+    train_test = dataModel.split_train_test(completedData)
+    forest = dataModel.random_Forest(*train_test)
+    winner = dataModel.get_winner(dataModel.build_res_df(*forest,train_test[2],train_test[3]),'RandomForestClassifier')
+
     return winner.values.tolist()
 
 
-@router.post("/")
+@router.post("")
 async def read_predict(draw:Draw):
-    return {"Model":model}
+    return {"Proba_gain":0.5,"Proba_perte":0.5,"Draw" :draw}
