@@ -3,6 +3,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from pydantic import BaseModel
+from sklearn.metrics import accuracy_score
+import pickle
+
+
+
 
 """
 Imports CSV into a dataFrame and returns it
@@ -20,7 +25,6 @@ def generateLosingDraw(path:str):
     data = CSVtoDataFrame(path)
     data['estGagnant'] = [True]*len(data)
     for i in range(len(data)) :
-        #data.iloc[i]['estGagnant'] = True
         date = data.iloc[i]['Date']
         gain = data.iloc[i]['Gain']
         for j in range(4):
@@ -63,7 +67,7 @@ def split_train_test(data):
 Uses the random Forest algorithm to predict which draw has the highest chance of winning
 """
 def random_Forest(X_train,Y_train,X_test,Y_test,maximum_depth=2):
-    randomForest = RandomForestClassifier(max_depth=maximum_depth, random_state=0)
+    randomForest = RandomForestClassifier(max_depth=maximum_depth)
     #Training
     randomForest.fit(X_train,np.ravel(Y_train))
 
@@ -72,7 +76,17 @@ def random_Forest(X_train,Y_train,X_test,Y_test,maximum_depth=2):
     pred_proba  = randomForest.predict_proba(X_test)
     score       = randomForest.score(X_test, np.ravel(Y_test))
     return (pred,pred_proba,score)
-    
+
+def train_model(model,X_train,Y_train,X_test,Y_test):
+    #Training
+    model.fit(X_train,np.ravel(Y_train))
+
+    #Prediction
+    pred        = model.predict(X_test)
+    pred_proba  = model.predict_proba(X_test)
+    score       = model.score(X_test, np.ravel(Y_test))
+    return (pred,pred_proba,score) 
+
 def build_res_df(pred,pred_proba,score,X_test,Y_test) :
     df_res = pd.concat([X_test, Y_test], axis=1)
     df_res['estGagnant_pred'] = pred
@@ -86,16 +100,40 @@ def get_winner(df, method) :
     df['method'] = method     
     winner = df.head(1)
     return winner
-  
 
+def serialize_model(model) : 
+    output = open('../data/model.pkl', 'wb')
+    pickle.dump(model, output)
+    output.close()
 
+def load_model():
+    f = open('../data/model.pkl', 'rb')
+    model = pickle.load(f)
+    f.close()
+    return model
+
+def get_metrics(model, X_test):
+    pred    = model.predict(X_test)
+    score   = accuracy_score(Y_test, pred)
+    params  = model.get_params()
+    name    = type(model).__name__
+    return {
+        'name' : name,
+        'score' : score, 
+        'params' : params
+    }
 
 if __name__ == "__main__":
     #data = generateLosingDraw("../data/EuroMillions_numbers.csv")
     #DataFrametoCSV(data,"Completed_EuroMillions")
     completedData = CSVtoDataFrame("../data/Completed_EuroMillions.csv",",")
     train_test = split_train_test(completedData)
-    forest = random_Forest(*train_test)
+    model = RandomForestClassifier(max_depth=2)
+
+    forest = train_model(model,*train_test)
+    serialize_model(forest)
+
+
     winner = get_winner(build_res_df(*forest,train_test[2],train_test[3]),'RandomForestClassifier')
     print(winner)
 
