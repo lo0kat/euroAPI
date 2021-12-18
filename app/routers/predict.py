@@ -1,23 +1,9 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 from ..model import dataModel
 
 completedData = dataModel.CSVtoDataFrame("app/data/Completed_EuroMillions.csv",",")
-
-
-class Draw(BaseModel):
-    Date:str
-    N1:int
-    N2:int
-    N3:int
-    N4:int
-    N5:int
-    N6:int
-    E1:int
-    E2:int
-    Winner:int
-    Gain : int
-    
+train_test = dataModel.split_train_test(completedData)
+forest = dataModel.random_Forest(*train_test)
 
 router = APIRouter(
      prefix="/predict",
@@ -26,13 +12,11 @@ router = APIRouter(
 
 @router.get("")
 async def read_predict():
-    train_test = dataModel.split_train_test(completedData)
-    forest = dataModel.random_Forest(*train_test)
-    winner = dataModel.get_winner(dataModel.build_res_df(*forest,train_test[2],train_test[3]),'RandomForestClassifier')
-
-    return winner.values.tolist()
+    winner = dataModel.get_winner(dataModel.build_res_df(forest[0],forest[1],train_test[2],train_test[3]),'RandomForestClassifier')
+    return winner
 
 
 @router.post("")
-async def read_predict(draw:Draw):
-    return {"Proba_gain":0.5,"Proba_perte":0.5,"Draw" :draw}
+async def read_predict(draw:dataModel.Draw):
+    loaded_model = dataModel.load_model()
+    return dataModel.predict_value([dataModel.drawToArray(draw)],loaded_model)

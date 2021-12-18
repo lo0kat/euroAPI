@@ -6,8 +6,21 @@ from pydantic import BaseModel
 from sklearn.metrics import accuracy_score
 import pickle
 
+class Draw(BaseModel):
+    N1:int
+    N2:int
+    N3:int
+    N4:int
+    N5:int
+    E1:int
+    E2:int
+    
+class Model(BaseModel):
+    name : str
 
 
+def drawToArray(draw:Draw):
+    return [draw.N1,draw.N2,draw.N3,draw.N4,draw.N5,draw.E1,draw.E2]
 
 """
 Imports CSV into a dataFrame and returns it
@@ -53,6 +66,11 @@ def generateLosingDraw(path:str):
     return data
  
 
+def getXandY(data):
+    Y = data[['estGagnant']]
+    X = data[['N1', 'N2', 'N3', 'N4', 'N5', 'E1', 'E2']]
+    return(X,Y)
+
 """
 Takes a dataframe, splits it into sets for training / testing and returns the result 
 """
@@ -87,7 +105,7 @@ def train_model(model,X_train,Y_train,X_test,Y_test):
     score       = model.score(X_test, np.ravel(Y_test))
     return (pred,pred_proba,score) 
 
-def build_res_df(pred,pred_proba,score,X_test,Y_test) :
+def build_res_df(pred,pred_proba,X_test,Y_test) :
     df_res = pd.concat([X_test, Y_test], axis=1)
     df_res['estGagnant_pred'] = pred
     df_res['probaDeGagner'] = pred_proba[:,1]
@@ -98,21 +116,46 @@ def build_res_df(pred,pred_proba,score,X_test,Y_test) :
 # Extraction de la combinaison gagnante
 def get_winner(df, method) :   
     df['method'] = method     
-    winner = df.head(1)
-    return winner
+    winner = df.head(1) 
+    return winner.to_dict(orient="records")[0]
+
+def predict_value(value,model):
+    proba,proba_perte = model.predict_proba(value)[0]
+    return dict ({
+        "tirage" : value,
+        "Proba gain": proba,
+        "Proba perte": proba_perte,
+    })
+
+def add_data(datas, X, Y):
+    for data in datas:
+        X = X.append({
+            "N1" : data['N1'],
+            "N2" : data['N2'],
+            "N3" : data['N3'],
+            "N4" : data['N4'],
+            "N5" : data['N5'],
+            "E1" : data['E1'],
+            "E2" : data['E2'],
+        }, ignore_index=True)
+        Y = Y.append({
+            "estGagnant" : data["estGagnant"]
+        }, ignore_index=True)
+    
+    return train_test_split(X, Y, test_size=0.2)    
 
 def serialize_model(model) : 
-    output = open('../data/model.pkl', 'wb')
+    output = open('app/data/model.pkl', 'wb')
     pickle.dump(model, output)
     output.close()
 
 def load_model():
-    f = open('../data/model.pkl', 'rb')
+    f = open('app/data/model.pkl', 'rb')
     model = pickle.load(f)
     f.close()
     return model
 
-def get_metrics(model, X_test):
+def get_metrics(model,X_test,Y_test):
     pred    = model.predict(X_test)
     score   = accuracy_score(Y_test, pred)
     params  = model.get_params()
@@ -129,11 +172,12 @@ if __name__ == "__main__":
     completedData = CSVtoDataFrame("../data/Completed_EuroMillions.csv",",")
     train_test = split_train_test(completedData)
     model = RandomForestClassifier(max_depth=2)
+    res = train_model(model,*train_test)
+    serialize_model(model)
+    loadedmodel=load_model()
 
-    forest = train_model(model,*train_test)
-    serialize_model(forest)
-
-
-    winner = get_winner(build_res_df(*forest,train_test[2],train_test[3]),'RandomForestClassifier')
-    print(winner)
+    winner = get_winner(build_res_df(res[0],res[1],train_test[2],train_test[3]),'RandomForestClassifier')
+    #print(winner)
+    print(get_metrics(loadedmodel,train_test[2],train_test[3]))
+    print(predict_value([[1,2,3,4,5,11,12]],loadedmodel))
 
