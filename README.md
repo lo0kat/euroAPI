@@ -26,7 +26,7 @@ uvicorn app.main:app --reload
 Accèder à l'API de FastAPI sur http://localhost:8000
 
 ## Modèle
-Random Forest est le modèle utilisé (profondeur de 2 par défaut). Un modèle purement statistique n'aboutit pas à des résultats satisfaisant.
+Random Forest est le modèle utilisé (profondeur de 2 par défaut). Un modèle purement statistique n'aboutit pas à des résultats satisfaisants.
 
 ## **Authors**
 - Tony Richard
