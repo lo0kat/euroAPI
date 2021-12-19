@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from pydantic import BaseModel
 from sklearn.metrics import accuracy_score
 import pickle
+import os.path
 
 class Draw(BaseModel):
     N1:int
@@ -14,10 +15,6 @@ class Draw(BaseModel):
     N5:int
     E1:int
     E2:int
-    
-class Model(BaseModel):
-    name : str
-
 
 def drawToArray(draw:Draw):
     return [draw.N1,draw.N2,draw.N3,draw.N4,draw.N5,draw.E1,draw.E2]
@@ -95,10 +92,7 @@ def random_Forest(X_train,Y_train,X_test,Y_test,maximum_depth=2):
     score       = randomForest.score(X_test, np.ravel(Y_test))
     return (pred,pred_proba,score)
 
-def train_model(model,X_train,Y_train,X_test,Y_test):
-    #Training
-    model.fit(X_train,np.ravel(Y_train))
-
+def predict_model(model,X_test,Y_test):
     #Prediction
     pred        = model.predict(X_test)
     pred_proba  = model.predict_proba(X_test)
@@ -166,13 +160,27 @@ def get_metrics(model,X_test,Y_test):
         'params' : params
     }
 
+
+generatedData = CSVtoDataFrame("app/data/Completed_EuroMillions.csv",",")
+trainingTestSet = split_train_test(generatedData)
+
+if not(os.path.isfile("app/data/model.pkl")):
+    modelAI = RandomForestClassifier(max_depth=2)
+    modelAI.fit(trainingTestSet[0],np.ravel(trainingTestSet[1]))
+    serialize_model(modelAI)
+else :
+    modelAI = load_model()
+
+trainingRes = predict_model(modelAI,trainingTestSet[2],np.ravel(trainingTestSet[3]))   
+
+
+
 if __name__ == "__main__":
     #data = generateLosingDraw("../data/EuroMillions_numbers.csv")
     #DataFrametoCSV(data,"Completed_EuroMillions")
     completedData = CSVtoDataFrame("../data/Completed_EuroMillions.csv",",")
     train_test = split_train_test(completedData)
-    model = RandomForestClassifier(max_depth=2)
-    res = train_model(model,*train_test)
+    
     serialize_model(model)
     loadedmodel=load_model()
 
