@@ -1,13 +1,11 @@
 from fastapi import FastAPI
-from fastapi.params import Depends
 from .routers import predict,model
-
-
 
 app = FastAPI()
 
-
-
+"""
+We define two routers here with the same prefix /api and a default Page at /
+"""
 app.include_router(predict.router,prefix="/api")
 app.include_router(model.router,prefix="/api")
 
