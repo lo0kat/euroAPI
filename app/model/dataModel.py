@@ -158,20 +158,3 @@ else :
     modelAI = load_model()
 
 trainingRes = predict_model(modelAI,trainingTestSet[2],np.ravel(trainingTestSet[3]))   
-
-
-
-if __name__ == "__main__":
-    #data = generateLosingDraw("../data/EuroMillions_numbers.csv")
-    #DataFrametoCSV(data,"Completed_EuroMillions")
-    completedData = CSVtoDataFrame("../data/Completed_EuroMillions.csv",",")
-    train_test = split_train_test(completedData)
-    
-    serialize_model(model)
-    loadedmodel=load_model()
-
-    winner = get_winner(build_res_df(res[0],res[1],train_test[2],train_test[3]),'RandomForestClassifier')
-    #print(winner)
-    print(get_metrics(loadedmodel,train_test[2],train_test[3]))
-    print(predict_value([[1,2,3,4,5,11,12]],loadedmodel))
-
