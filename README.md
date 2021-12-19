@@ -23,3 +23,7 @@ pip3 install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 Accèder à l'API de FastAPI sur http://localhost:8000
+
+## **Authors**
+- Tony Richard
+- Louis CHOMEL

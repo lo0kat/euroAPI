@@ -1,3 +1,5 @@
 fastapi
 typing
 uvicorn[standard]
+pandas
+scikit-learn
