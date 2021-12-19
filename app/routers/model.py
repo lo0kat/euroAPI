@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from ..model import dataModel
+import numpy as np
 
 router = APIRouter(
      prefix="/model",
@@ -18,5 +19,8 @@ async def read_model(draw: dataModel.Draw):
 
 @router.post("/retrain")
 async def read_model():
-    dataModel.trainingTestSet = dataModel.split_train_test(dataModel.completedData)
-    return "Model is being retrained"
+    dataModel.trainingTestSet = dataModel.split_train_test(dataModel.X,dataModel.Y)
+    dataModel.modelAI.fit(dataModel.trainingTestSet[0],np.ravel(dataModel.trainingTestSet[1]))
+    dataModel.serialize_model(dataModel.modelAI)
+    
+    return "Le modèle a été réentrainé !"
