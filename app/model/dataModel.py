@@ -115,29 +115,13 @@ def get_winner(df, method) :
     return winner.to_dict(orient="records")[0]
 
 def predict_value(value,model):
-    proba,proba_perte = model.predict_proba(value)[0]
+    proba_perte,proba = model.predict_proba(value)[0]
     return dict ({
         "tirage" : value,
         "Proba gain": proba,
         "Proba perte": proba_perte,
     })
 
-def add_data(datas, X, Y):
-    for data in datas:
-        X = X.append({
-            "N1" : data['N1'],
-            "N2" : data['N2'],
-            "N3" : data['N3'],
-            "N4" : data['N4'],
-            "N5" : data['N5'],
-            "E1" : data['E1'],
-            "E2" : data['E2'],
-        }, ignore_index=True)
-        Y = Y.append({
-            "estGagnant" : data["estGagnant"]
-        }, ignore_index=True)
-    
-    return train_test_split(X, Y, test_size=0.2)    
 
 def serialize_model(model) : 
     output = open('app/data/model.pkl', 'wb')
